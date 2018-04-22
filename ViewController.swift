@@ -14,29 +14,13 @@ class ViewController: UIViewController {
     
     private let slidingTextStack = SlidingTextStack(frame: .zero)
     
-    private var slideUpOutAnimator: UIViewPropertyAnimator = {
-        let timingCurveProvider = UISpringTimingParameters(dampingRatio: 0.5, initialVelocity: CGVector(dx: 1.0, dy: 2.0))
-        
-        let slideAnimator = UIViewPropertyAnimator(duration: 1.0, timingParameters: timingCurveProvider)
-        return slideAnimator
-    }()
-    
     private var resetButton: UIButton = {
         let button = UIButton()
         button.backgroundColor = .blue
         button.setTitleColor(.white, for: .normal)
         button.setTitle("Reset", for: .normal)
-        button.addTarget(self, action: #selector(resetViews), for: .touchUpInside)
         
         return button
-    }()
-    
-    private var stackView: UIStackView = {
-        let stackView: UIStackView = UIStackView()
-        stackView.axis = .vertical
-        stackView.spacing = 8.0
-        
-        return stackView
     }()
     
     override func viewDidLoad() {
@@ -44,62 +28,27 @@ class ViewController: UIViewController {
         self.view.backgroundColor = .white
         
         self.view.addSubview(resetButton)
-//        self.view.addSubview(stackView)
-//        stackView.addArrangedSubview(titleLabel)
-//        stackView.addArrangedSubview(bodyLabel)
-//
-//        resetButton.translatesAutoresizingMaskIntoConstraints = false
-//        stackView.translatesAutoresizingMaskIntoConstraints = false
+        self.view.addSubview(slidingTextStack)
+        
+        let tapGesture = UITapGestureRecognizer(target: slidingTextStack, action: #selector(slidingTextStack.resetViews))
+        resetButton.addGestureRecognizer(tapGesture)
+        
+        slidingTextStack.translatesAutoresizingMaskIntoConstraints = false
+        resetButton.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            stackView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor, constant: 0.0),
-            stackView.centerYAnchor.constraint(equalTo: self.view.centerYAnchor, constant: 0.0),
-            stackView.widthAnchor.constraint(equalTo: self.view.widthAnchor, constant: -100.0),
-            
+            slidingTextStack.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
+            slidingTextStack.centerYAnchor.constraint(equalTo: self.view.centerYAnchor),
+            slidingTextStack.widthAnchor.constraint(equalTo: self.view.widthAnchor, constant: -100.0),
+
             resetButton.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
             resetButton.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -20.0),
             resetButton.widthAnchor.constraint(equalToConstant: 80.0),
             resetButton.heightAnchor.constraint(equalToConstant: 28.0)
             ])
         
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(didTapLabelPropertyAnimator(_:)))
-        let invertTextGesture = UITapGestureRecognizer(target: self, action: #selector(invertLabel(_:)))
-//        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(didTapLabel(sender:)))
-        stackView.addGestureRecognizer(tapGesture)
-//        titleLabel.addGestureRecognizer(invertTextGesture)
-//        bodyLabel.addGestureRecognizer(invertTextGesture)
+        
     }
-    
-    @objc
-    func invertLabel(_ sender: UITapGestureRecognizer) {
-        if let label = sender.view as? UILabel {
-            label.textColor = label.textColor == .white ? .black : .white
-            label.backgroundColor = label.backgroundColor == .white ? .black : .white
-        }
-    }
-    
-    @objc
-    func didTapLabelPropertyAnimator(_ sender: Any) {
-//        slideUpOutAnimator.addAnimations {
-//            self.titleLabel.transform = CGAffineTransform(translationX: -30.0, y: 0.0)
-//        }
-//        slideUpOutAnimator.addAnimations({
-//            self.titleLabel.transform = CGAffineTransform(translationX: self.titleLabel.transform.tx, y: -200.0)
-//            self.titleLabel.alpha = 0.0
-//        }, delayFactor: 0.25)
-//
-//        slideUpOutAnimator.addAnimations({
-//            self.bodyLabel.transform = CGAffineTransform(translationX: -30.0, y: 0.0)
-//        }, delayFactor: 0.35)
-//
-//        slideUpOutAnimator.addAnimations({
-//            self.bodyLabel.transform = CGAffineTransform(translationX: self.bodyLabel.transform.tx, y: -200.0)
-//            self.bodyLabel.alpha = 0.0
-//        }, delayFactor: 0.7)
-//
-//        slideUpOutAnimator.startAnimation()
-    }
-    
     
     @objc
     func didTapLabel(sender: Any) {
@@ -137,22 +86,6 @@ class ViewController: UIViewController {
 //
 //        })
     }
-
-    @objc
-    func resetViews() {
-//        self.titleLabel.transform = .identity
-//        self.bodyLabel.transform = .identity
-//
-//        self.titleLabel.alpha = 1.0
-//        self.bodyLabel.alpha = 1.0
-//
-        switch slideUpOutAnimator.state {
-        case .active, .inactive:
-            break
-        case .stopped:
-            slideUpOutAnimator.stopAnimation(true)
-        }
-    }
 }
 
 class SlidingTextStack: UIStackView {
@@ -162,6 +95,8 @@ class SlidingTextStack: UIStackView {
         label.font = UIFont(name: "Futura", size: 34.0)
         label.numberOfLines = 0
         label.textAlignment = .left
+        label.textColor = .black
+        label.backgroundColor = .white
         label.text = "Welcome to Chained Animations"
         
         return label
@@ -172,9 +107,18 @@ class SlidingTextStack: UIStackView {
         label.font = UIFont(name: "Futura", size: 18.0)
         label.numberOfLines = 0
         label.textAlignment = .left
+        label.textColor = .black
+        label.backgroundColor = .white
         label.text = "This is a simple demo on how to effectively chain animations together to produced a cohesive visual style. It was inspired by the \"let's build that app\" youtube series, and was further extended by myself when the video did not include some of the additional implementation of its demo."
         
         return label
+    }()
+    
+    private var slideUpOutAnimator: UIViewPropertyAnimator = {
+        let timingCurveProvider = UISpringTimingParameters(dampingRatio: 0.5, initialVelocity: CGVector(dx: 1.0, dy: 2.0))
+        
+        let slideAnimator = UIViewPropertyAnimator(duration: 1.0, timingParameters: timingCurveProvider)
+        return slideAnimator
     }()
     
     override init(frame: CGRect) {
@@ -186,20 +130,63 @@ class SlidingTextStack: UIStackView {
         self.addArrangedSubview(titleLabel)
         self.addArrangedSubview(bodyLabel)
         
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(invertLabel(_:)))
-        self.addGestureRecognizer(tapGesture)
+        let tapGestureInvert = UITapGestureRecognizer(target: self, action: #selector(handleViewTapped(_:)))
+        self.addGestureRecognizer(tapGestureInvert)
     }
 
     required init(coder: NSCoder) {
         fatalError("Not Implemented")
     }
     
+    @objc func handleViewTapped(_ sender: UITapGestureRecognizer) {
+        invertLabelIfNeeded(at: sender.location(ofTouch: 0, in: self))
+        slideLabels()
+    }
+    
+    private func invertLabelIfNeeded(at position: CGPoint) {
+        if titleLabel.frame.contains(position) {
+            titleLabel.textColor = titleLabel.textColor == .white ? .black : .white
+            titleLabel.backgroundColor = titleLabel.backgroundColor == .white ? .black : .white
+        } else if bodyLabel.frame.contains(position) {
+            bodyLabel.textColor = bodyLabel.textColor == .white ? .black : .white
+            bodyLabel.backgroundColor = bodyLabel.backgroundColor == .white ? .black : .white
+        }
+    }
+    
+    private func slideLabels() {
+        slideUpOutAnimator.addAnimations {
+            self.titleLabel.transform = CGAffineTransform(translationX: -30.0, y: 0.0)
+        }
+        slideUpOutAnimator.addAnimations({
+            self.titleLabel.transform = CGAffineTransform(translationX: self.titleLabel.transform.tx, y: -200.0)
+            self.titleLabel.alpha = 0.0
+        }, delayFactor: 0.25)
+        
+        slideUpOutAnimator.addAnimations({
+            self.bodyLabel.transform = CGAffineTransform(translationX: -30.0, y: 0.0)
+        }, delayFactor: 0.35)
+        
+        slideUpOutAnimator.addAnimations({
+            self.bodyLabel.transform = CGAffineTransform(translationX: self.bodyLabel.transform.tx, y: -200.0)
+            self.bodyLabel.alpha = 0.0
+        }, delayFactor: 0.7)
+        
+        slideUpOutAnimator.startAnimation()
+    }
+    
     @objc
-    private func invertLabel(_ sender: UITapGestureRecognizer) {
-        guard sender.numberOfTouches == 1 else { return }
-        if let label = hitTest(sender.location(ofTouch: 0, in: self), with: nil) as? UILabel {
-            label.textColor = label.textColor == .white ? .black : .white
-            label.backgroundColor = label.backgroundColor == .white ? .black : .white
+    func  resetViews() {
+        self.titleLabel.transform = .identity
+        self.bodyLabel.transform = .identity
+        
+        self.titleLabel.alpha = 1.0
+        self.bodyLabel.alpha = 1.0
+        
+        switch slideUpOutAnimator.state {
+        case .active, .inactive:
+            break
+        case .stopped:
+            slideUpOutAnimator.stopAnimation(true)
         }
     }
 }
